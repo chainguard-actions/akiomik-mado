@@ -1,0 +1,84 @@
+use miette::Result;
+
+use crate::config::Config;
+use crate::violation::Violation;
+use crate::Document;
+use crate::Rule;
+
+#[derive(Default)]
+pub struct Linter {
+    rules: Vec<Rule>,
+}
+
+impl Linter {
+    #[inline]
+    #[must_use]
+    pub const fn new(rules: Vec<Rule>) -> Self {
+        Self { rules }
+    }
+
+    #[inline]
+    pub fn check(&self, doc: &Document) -> Result<Vec<Violation>> {
+        // Iterate rules while unrolling Vec<Result<Vec<..>>> to Result<Vec<..>>
+        self.rules.iter().try_fold(vec![], |mut unrolled, rule| {
+            let result = rule.check(doc);
+            unrolled.extend(result?);
+            Ok(unrolled)
+        })
+    }
+}
+
+impl From<&Config> for Linter {
+    #[inline]
+    #[must_use]
+    fn from(config: &Config) -> Self {
+        let rules = Vec::from(&config.lint);
+
+        Self { rules }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::path::Path;
+
+    use comrak::{nodes::Sourcepos, Arena};
+    use pretty_assertions::assert_eq;
+
+    use crate::config::lint::RuleSet;
+    use crate::rule::RuleLike as _;
+    use crate::rule::MD026;
+
+    use super::*;
+
+    #[test]
+    fn check() {
+        let text = "---
+comments: false
+description: Some text
+---
+
+# This is a header."
+            .to_owned();
+        let path = Path::new("test.md").to_path_buf();
+        let arena = Arena::new();
+        let doc = Document::new(&arena, path.clone(), text).unwrap();
+        let md026 = MD026::default();
+        let rules = vec![Rule::MD026(md026.clone())];
+        let linter = Linter::new(rules);
+        let actual = linter.check(&doc).unwrap();
+        let expected = vec![md026.to_violation(path, Sourcepos::from((6, 1, 6, 19)))];
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn from_config() {
+        let md026 = MD026::default();
+        let rules = vec![RuleSet::MD026];
+        let mut config = Config::default();
+        config.lint.rules = rules;
+        let linter = Linter::from(&config);
+        let expected = vec![Rule::MD026(md026)];
+        assert_eq!(linter.rules, expected);
+    }
+}

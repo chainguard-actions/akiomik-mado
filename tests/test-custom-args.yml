@@ -1,0 +1,18 @@
+name: Test custom args - check specific file
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        with:
+          args: check ${{ github.workspace }}/pristine/akiomik--mado/v0.2.2/tests/fixtures/valid.md
+
+      - name: Assert action succeeded with custom args
+        run: |
+          echo "PASS: mado ran successfully with custom args on fixture file"

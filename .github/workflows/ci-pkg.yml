@@ -1,0 +1,75 @@
+name: CI Package # Continuous Integration
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+
+  homebrew:
+    name: Test Homebrew
+    runs-on: macos-latest
+    steps:
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@df4b09108a1de9d6f995fe68f302b3f68bd6d2ef # master
+        with:
+            test-bot: true
+            stable: true
+        env:
+            HOMEBREW_TAP_REPOSITORY: /opt/homebrew/Library/Taps/akiomik/mado
+      - name: Rename akiomik/mado to akiomik/homebrew-mado
+        run: mv /opt/homebrew/Library/Taps/akiomik/mado /opt/homebrew/Library/Taps/akiomik/homebrew-mado
+      - name: Checkout repository for updating HEAD
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Show the latest commit
+        run: git log -1
+      - name: Run Homebrew info
+        run: brew info mado
+      - name: Run Homebrew Test Bot
+        run: brew test-bot --only-formulae --skip-dependents --skip-online-checks mado
+      - name: Revert renaming
+        run: mv /opt/homebrew/Library/Taps/akiomik/homebrew-mado /opt/homebrew/Library/Taps/akiomik/mado
+
+  scoop:
+    name: Test Scoop
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository for updating HEAD
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Setup Scoop
+        uses: MinoruSekine/setup-scoop@371e1c778465fed5ee2101c415bead47553e1a07 # v5.0.0
+      - name: Install Mado via Scoop
+        run: scoop install pkg\scoop\mado.json
+
+  winget:
+    name: Test WinGet
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      # NOTE: Cyberboss/install-winget@1 may reach rate limit and not install winget,
+      #       so use scoop instead
+      - name: Setup Scoop
+        uses: MinoruSekine/setup-scoop@371e1c778465fed5ee2101c415bead47553e1a07 # v5.0.0
+      - name: Install WinGet
+        run: scoop install winget
+      - name: Run winget validate
+        run: winget validate pkg\winget\mado.yml
+      - name: Enable LocalManifestFiles for WinGet
+        run: winget settings --enable LocalManifestFiles
+      - name: Install Mado via WinGet
+        run: winget install -m pkg\winget\mado.yml
+
+  nix:
+    name: Test Nix
+    runs-on: ubuntu-latest
+    steps:
+        - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        - uses: cachix/install-nix-action@630ae543ea3a38a9a4166f03376c02c50f408342 # v31
+        - run: nix build
+        - run: nix flake check

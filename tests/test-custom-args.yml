@@ -1,0 +1,41 @@
+name: Test custom args - check specific directory
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create a directory with valid markdown files
+        run: |
+          mkdir -p tests/fixtures/valid-dir
+          cat > tests/fixtures/valid-dir/doc1.md << 'EOF'
+          # Document One
+
+          This is the first document.
+
+          ## Section
+
+          Some content.
+          EOF
+          cat > tests/fixtures/valid-dir/doc2.md << 'EOF'
+          # Document Two
+
+          This is the second document.
+
+          ## Details
+
+          More content here.
+          EOF
+
+      - name: Run mado with custom args to check a directory
+        id: action
+        uses: .
+        with:
+          args: "check tests/fixtures/valid-dir"
+
+      - name: Assert action succeeded checking directory
+        run: |
+          echo "PASS: mado ran successfully checking a directory with custom args"

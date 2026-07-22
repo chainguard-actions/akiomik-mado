@@ -1,0 +1,52 @@
+name: CD # Continuous Deployment
+
+on:
+  push:
+    tags:
+      - '[v]?[0-9]+.[0-9]+.[0-9]+'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Release - ${{ matrix.platform.os-name }}
+    runs-on: ${{ matrix.platform.runs-on }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - os-name: Linux-x86_64
+            runs-on: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - os-name: Linux-aarch64
+            runs-on: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+          - os-name: macOS-x86_64
+            runs-on: macOS-latest
+            target: x86_64-apple-darwin
+          - os-name: macOS-aarch64
+            runs-on: macOS-latest
+            target: aarch64-apple-darwin
+          - os-name: Windows-x86_64
+            runs-on: windows-latest
+            target: x86_64-pc-windows-msvc
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+    - name: Build binary
+      uses: houseabsolute/actions-rust-cross@f481cb5e0110765615313e2177ce12a99bf26bbd # v1
+      with:
+        command: build
+        target: ${{ matrix.platform.target }}
+        toolchain: "1.91.1"
+        args: "--locked --release"
+        strip: true
+    - name: Publish artifacts and release
+      uses: houseabsolute/actions-rust-release@d4224577aca6ac71a9d6aab18adf766c5656594c # v0.0.8
+      with:
+        executable-name: mado
+        target: ${{ matrix.platform.target }}
+        changes-file: CHANGELOG.md

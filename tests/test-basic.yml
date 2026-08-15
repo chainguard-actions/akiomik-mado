@@ -1,0 +1,32 @@
+name: Test basic usage - valid markdown
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create a valid markdown file
+        run: |
+          mkdir -p /tmp/md-test
+          cat > /tmp/md-test/valid.md << 'EOF'
+          # Hello World
+
+          This is a valid markdown file.
+
+          ## Section
+
+          Some content here.
+          EOF
+
+      - name: Run mado on valid markdown
+        id: action
+        uses: .
+        with:
+          args: check /tmp/md-test/valid.md
+
+      - name: Assert action succeeded
+        run: |
+          echo "PASS: mado check succeeded on valid markdown"

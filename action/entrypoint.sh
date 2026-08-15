@@ -30,5 +30,6 @@ if [[ ! -x "$COMMAND" ]]; then
 fi
 
 echo "Run '$COMMAND_PATH $INPUT_ARGS'"
+# shellcheck disable=SC2086
 read -ra ARGS <<< "$INPUT_ARGS"
 "$COMMAND_PATH" "${ARGS[@]}"

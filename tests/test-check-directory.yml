@@ -1,0 +1,37 @@
+name: Test check directory - multiple valid markdown files
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create a directory with valid markdown files
+        run: |
+          mkdir -p /tmp/md-dir
+          cat > /tmp/md-dir/file1.md << 'EOF'
+          # File One
+
+          This is the first file.
+          EOF
+          cat > /tmp/md-dir/file2.md << 'EOF'
+          # File Two
+
+          This is the second file.
+
+          ## Subsection
+
+          More content.
+          EOF
+
+      - name: Run mado check on directory
+        id: action
+        uses: .
+        with:
+          args: check /tmp/md-dir
+
+      - name: Assert action succeeded
+        run: |
+          echo "PASS: mado check succeeded on directory with valid markdown files"

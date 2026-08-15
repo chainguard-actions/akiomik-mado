@@ -1,0 +1,35 @@
+name: Test default args - check current directory
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create a temporary directory with valid markdown only
+        run: |
+          mkdir -p /tmp/md-default
+          cat > /tmp/md-default/index.md << 'EOF'
+          # Index
+
+          Welcome to the documentation.
+
+          ## Overview
+
+          This is the overview section.
+
+          ## Getting Started
+
+          Follow these steps to get started.
+          EOF
+
+      - name: Run mado action with default-like args on known-good directory
+        id: action
+        uses: .
+        with:
+          args: "check /tmp/md-default"
+
+      - name: Assert action succeeded
+        run: |
+          echo "PASS: mado check passed on directory with valid markdown"

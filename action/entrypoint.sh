@@ -29,6 +29,10 @@ if [[ ! -x "$COMMAND" ]]; then
   rm $DOWNLOAD_FILE
 fi
 
-echo "Run '$COMMAND_PATH $INPUT_ARGS'"
-read -ra ARGS <<< "$INPUT_ARGS"
-"$COMMAND_PATH" "${ARGS[@]}"
+args=()
+if [ -n "$INPUT_ARGS" ]; then
+  while IFS= read -r -d '' t; do args+=("$t"); done \
+    < <(printf '%s' "$INPUT_ARGS" | xargs printf '%s\0')
+fi
+echo "Run '$COMMAND_PATH ${args[*]}'"
+"$COMMAND_PATH" "${args[@]}"

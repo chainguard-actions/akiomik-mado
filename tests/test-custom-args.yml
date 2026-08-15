@@ -1,0 +1,39 @@
+name: Test custom args - check specific file
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create a valid markdown file for testing
+        run: |
+          mkdir -p /tmp/md-custom
+          cat > /tmp/md-custom/readme.md << 'EOF'
+          # Project
+
+          A simple project readme.
+
+          ## Installation
+
+          Run the following command:
+
+          ```sh
+          npm install
+          ```
+
+          ## Usage
+
+          See the docs.
+          EOF
+
+      - name: Run mado action with custom args pointing to specific file
+        id: action
+        uses: .
+        with:
+          args: "check /tmp/md-custom/readme.md"
+
+      - name: Assert action succeeded with custom args
+        run: |
+          echo "PASS: mado check passed with custom args on specific file"

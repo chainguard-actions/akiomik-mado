@@ -1,0 +1,47 @@
+name: Test check directory of markdown files
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create a directory with valid markdown files
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/test-docs"
+          cat > "$GITHUB_WORKSPACE/test-docs/README.md" << 'EOF'
+          # Project README
+
+          Welcome to the project.
+
+          ## Installation
+
+          Run the following command:
+
+          ```bash
+          npm install
+          ```
+
+          ## Usage
+
+          See the documentation for details.
+          EOF
+          cat > "$GITHUB_WORKSPACE/test-docs/CONTRIBUTING.md" << 'EOF'
+          # Contributing
+
+          Thank you for contributing!
+
+          ## Guidelines
+
+          Please follow the code style.
+          EOF
+
+      - id: action
+        uses: .
+        with:
+          args: "check ${{ github.workspace }}/test-docs"
+
+      - name: Assert action succeeded on directory
+        run: |
+          echo "PASS: mado check completed successfully on directory of markdown files"

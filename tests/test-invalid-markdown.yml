@@ -1,24 +1,23 @@
 name: Test invalid markdown - action should fail
 on:
   workflow_dispatch:
-
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Create an invalid markdown file with violations
+      - name: Create a markdown file with a hard tab (mado rule violation)
         run: |
-          mkdir -p /tmp/md-invalid
-          # Create a markdown file with heading level skip (MD001 violation)
-          # and a bare URL (MD034 violation) - these are default mado rules
-          printf '# Title\n\n### Skipped heading level\n\nSee https://example.com for details.\n' > /tmp/md-invalid/invalid.md
+          mkdir -p "$GITHUB_WORKSPACE/test-invalid"
+          # Create a markdown file with a hard tab character which mado should flag
+          printf '# Title\n\n\tThis line starts with a hard tab which violates mado rules.\n' \
+            > "$GITHUB_WORKSPACE/test-invalid/bad.md"
 
       - id: action
         uses: .
         with:
-          args: check /tmp/md-invalid/invalid.md
+          args: "check ${{ github.workspace }}/test-invalid/bad.md"
         continue-on-error: true
 
       - name: Assert action failed on invalid markdown
@@ -27,7 +26,7 @@ jobs:
         run: |
           echo "outcome: $OUTCOME"
           if [ "$OUTCOME" != "failure" ]; then
-            echo "FAIL: expected action to fail on invalid markdown, but got outcome '$OUTCOME'"
+            echo "FAIL: expected action to fail on invalid markdown but got outcome: $OUTCOME"
             exit 1
           fi
           echo "PASS: action correctly failed on invalid markdown"

@@ -1,0 +1,36 @@
+name: Test default args - check current directory
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create a valid markdown file in a subdirectory
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/test-default"
+          cat > "$GITHUB_WORKSPACE/test-default/sample.md" << 'EOF'
+          # Sample Document
+
+          This is a sample markdown document used for testing.
+
+          ## Features
+
+          - Feature one
+          - Feature two
+          - Feature three
+
+          ## Conclusion
+
+          End of document.
+          EOF
+
+      - id: action
+        uses: .
+        with:
+          args: "check ${{ github.workspace }}/test-default"
+
+      - name: Assert default check succeeded
+        run: |
+          echo "PASS: mado check with default-style args completed successfully"

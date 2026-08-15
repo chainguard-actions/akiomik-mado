@@ -1,7 +1,6 @@
 name: Test basic usage - valid markdown
 on:
   workflow_dispatch:
-
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -10,14 +9,22 @@ jobs:
 
       - name: Create a valid markdown file to check
         run: |
-          mkdir -p /tmp/md-test
-          printf '# Hello World\n\nThis is a valid markdown file.\n\n## Section\n\nSome content here.\n' > /tmp/md-test/valid.md
+          mkdir -p "$GITHUB_WORKSPACE/test-md"
+          cat > "$GITHUB_WORKSPACE/test-md/valid.md" << 'EOF'
+          # Hello World
+
+          This is a valid markdown file.
+
+          ## Section
+
+          Some content here.
+          EOF
 
       - id: action
         uses: .
         with:
-          args: check /tmp/md-test/valid.md
+          args: "check ${{ github.workspace }}/test-md/valid.md"
 
       - name: Assert action succeeded
         run: |
-          echo "PASS: mado ran successfully on valid markdown"
+          echo "PASS: mado check completed successfully on valid markdown"

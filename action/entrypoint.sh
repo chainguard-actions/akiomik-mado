@@ -29,6 +29,6 @@ if [[ ! -x "$COMMAND" ]]; then
   rm $DOWNLOAD_FILE
 fi
 
-read -ra ARGS <<< "$INPUT_ARGS"
 echo "Run '$COMMAND_PATH $INPUT_ARGS'"
-"$COMMAND_PATH" "${ARGS[@]}"
+read -ra ARGS <<< "$INPUT_ARGS"
+$COMMAND_PATH "${ARGS[@]}"

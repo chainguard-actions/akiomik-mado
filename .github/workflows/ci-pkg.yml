@@ -1,0 +1,76 @@
+name: CI Package # Continuous Integration
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions: {}
+
+jobs:
+
+  homebrew:
+    name: Test Homebrew
+    runs-on: macos-latest
+    steps:
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@3cdb78d0f62ad29dd32de765782654f4eedea607 # 2026.08.31.1
+        with:
+            stable: true
+        env:
+            # NOTE: This repository is not named `homebrew-mado`, so setup-homebrew cannot
+            #       derive the tap variables itself and both must be set explicitly.
+            HOMEBREW_TAP_REPOSITORY: /opt/homebrew/Library/Taps/akiomik/mado
+            HOMEBREW_TAP_NAME: akiomik/mado
+      - name: Rename akiomik/mado to akiomik/homebrew-mado
+        run: mv /opt/homebrew/Library/Taps/akiomik/mado /opt/homebrew/Library/Taps/akiomik/homebrew-mado
+      - name: Checkout repository for updating HEAD
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Show the latest commit
+        run: git log -1
+      - name: Run Homebrew info
+        run: brew info mado
+      - name: Run Homebrew Test Bot
+        run: brew test-bot --only-formulae --skip-dependents --skip-online-checks mado
+      - name: Revert renaming
+        run: mv /opt/homebrew/Library/Taps/akiomik/homebrew-mado /opt/homebrew/Library/Taps/akiomik/mado
+
+  scoop:
+    name: Test Scoop
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository for updating HEAD
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Setup Scoop
+        uses: MinoruSekine/setup-scoop@f1cc59be496ed3a1801a5f64efe5c60ba3d6bb75 # v5.0.1
+      - name: Install Mado via Scoop
+        run: scoop install pkg\scoop\mado.json
+
+  winget:
+    name: Test WinGet
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # NOTE: Cyberboss/install-winget@1 may reach rate limit and not install winget,
+      #       so use scoop instead
+      - name: Setup Scoop
+        uses: MinoruSekine/setup-scoop@f1cc59be496ed3a1801a5f64efe5c60ba3d6bb75 # v5.0.1
+      - name: Install WinGet
+        run: scoop install winget
+      - name: Run winget validate
+        run: winget validate pkg\winget\mado.yml
+      - name: Enable LocalManifestFiles for WinGet
+        run: winget settings --enable LocalManifestFiles
+      - name: Install Mado via WinGet
+        run: winget install -m pkg\winget\mado.yml
+
+  nix:
+    name: Test Nix
+    runs-on: ubuntu-latest
+    steps:
+        - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        - uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31.11.1
+        - run: nix build
+        - run: nix flake check

@@ -1,0 +1,27 @@
+name: Test custom args - check specific file
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create a specific Markdown file to check
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/md-custom"
+          cat > "$GITHUB_WORKSPACE/md-custom/readme.md" << 'EOF'
+          # Custom Test
+
+          This file is checked with custom args.
+          EOF
+
+      - id: action
+        uses: .
+        with:
+          args: "check ${{ github.workspace }}/md-custom/readme.md"
+
+      - name: Assert action succeeded with custom args
+        run: |
+          echo "PASS: mado ran successfully with custom file argument"

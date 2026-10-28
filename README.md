@@ -6,13 +6,14 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 
 ## Versions
 
-| Version | Tag | Upstream commit |
-|---------|-----|-----------------|
-| v0.2.0 | [`v0.2.0`](https://github.com/chainguard-actions/akiomik-mado/tree/v0.2.0) | [`8d4b261`](https://github.com/akiomik/mado/commit/8d4b26195fe2d5120b03ad2923411aa8e8322e69) |
-| v0.2.2 | [`v0.2.2`](https://github.com/chainguard-actions/akiomik-mado/tree/v0.2.2) | [`6a98746`](https://github.com/akiomik/mado/commit/6a987466f99bb4a11b0bab42398f33c49d3d5a9c) |
-| v0.3.0 | [`v0.3.0`](https://github.com/chainguard-actions/akiomik-mado/tree/v0.3.0) | [`9b5cb3a`](https://github.com/akiomik/mado/commit/9b5cb3a1d234ddbacad4dd811aaa2a1e671d5306) |
-| v0.3.1 | [`v0.3.1`](https://github.com/chainguard-actions/akiomik-mado/tree/v0.3.1) | [`177695b`](https://github.com/akiomik/mado/commit/177695b4d2cd6b107f881a8e91067cc7588fb129) |
-| v0.3.2 | [`v0.3.2`](https://github.com/chainguard-actions/akiomik-mado/tree/v0.3.2) | [`6642676`](https://github.com/akiomik/mado/commit/6642676268ddaad6187482ef57d95e218c6b865c) |
+| Version | Tag | Upstream commit | Hardening report |
+|---------|-----|-----------------|------------------|
+| v0.2.0 | [`v0.2.0`](https://github.com/chainguard-actions/akiomik-mado/tree/v0.2.0) | [`8d4b261`](https://github.com/akiomik/mado/commit/8d4b26195fe2d5120b03ad2923411aa8e8322e69) | [`HARDENING.md`](https://github.com/chainguard-actions/akiomik-mado/blob/v0.2.0/HARDENING.md) |
+| v0.2.2 | [`v0.2.2`](https://github.com/chainguard-actions/akiomik-mado/tree/v0.2.2) | [`6a98746`](https://github.com/akiomik/mado/commit/6a987466f99bb4a11b0bab42398f33c49d3d5a9c) | [`HARDENING.md`](https://github.com/chainguard-actions/akiomik-mado/blob/v0.2.2/HARDENING.md) |
+| v0.3.0 | [`v0.3.0`](https://github.com/chainguard-actions/akiomik-mado/tree/v0.3.0) | [`9b5cb3a`](https://github.com/akiomik/mado/commit/9b5cb3a1d234ddbacad4dd811aaa2a1e671d5306) | [`HARDENING.md`](https://github.com/chainguard-actions/akiomik-mado/blob/v0.3.0/HARDENING.md) |
+| v0.3.1 | [`v0.3.1`](https://github.com/chainguard-actions/akiomik-mado/tree/v0.3.1) | [`177695b`](https://github.com/akiomik/mado/commit/177695b4d2cd6b107f881a8e91067cc7588fb129) | [`HARDENING.md`](https://github.com/chainguard-actions/akiomik-mado/blob/v0.3.1/HARDENING.md) |
+| v0.3.2 | [`v0.3.2`](https://github.com/chainguard-actions/akiomik-mado/tree/v0.3.2) | [`6642676`](https://github.com/akiomik/mado/commit/6642676268ddaad6187482ef57d95e218c6b865c) | [`HARDENING.md`](https://github.com/chainguard-actions/akiomik-mado/blob/v0.3.2/HARDENING.md) |
+| v0.4.0 | [`v0.4.0`](https://github.com/chainguard-actions/akiomik-mado/tree/v0.4.0) | [`176308a`](https://github.com/akiomik/mado/commit/176308a272e4057641ae1732e7b87c243b0c7829) | [`HARDENING.md`](https://github.com/chainguard-actions/akiomik-mado/blob/v0.4.0/HARDENING.md) |
 
 ## Privacy
 

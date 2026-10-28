@@ -1,0 +1,296 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog], and this project adheres to
+[Semantic Versioning].
+
+Entries describe changes a user of `mado` can observe: rules, the command line,
+the configuration file, and the ways mado is distributed. Dependency updates,
+CI, packaging internals, refactors and tests are left to the commit history —
+except for the Markdown parser, whose version determines how documents are
+parsed and therefore what gets reported.
+
+## [Unreleased]
+
+## [0.4.0] - 2026-10-27
+
+### Changed
+
+- **Breaking:** `respect-gitignore` takes a policy rather than a boolean, since
+  there are three behaviours to name rather than two (#447):
+
+  | 0.3.x | 0.4.0 |
+  |---|---|
+  | `respect-gitignore = false` | `respect-gitignore = "never"` |
+  | `respect-gitignore = true` | `respect-gitignore = "repository-only"` |
+  | — | `respect-gitignore = "always"` |
+
+  `"repository-only"` is the default and is what a boolean `true` did:
+  `.gitignore` applies inside a repository, as Git does. Note the entry below,
+  which changes what a repository lints in every mode. `"always"` stops mado looking
+  for a repository at all, for every tree rather than only those without one, so
+  a source archive or a Docker context copied without `.git` lints the files a
+  clone of it does. It comes on the `ignore` crate's terms, the same ones
+  `rg --no-require-git` has: `.gitignore` files apply from every parent
+  directory, above a clone's own repository root included, and a repository
+  below the path being linted does not bound the search. The boolean spelling is
+  not accepted; a configuration that still carries it fails to load rather than
+  being guessed at
+- The global Git ignore file and `.git/info/exclude` are no longer read. mado
+  had been reading both by inheriting the walker's defaults; neither travels
+  with the tree being linted, so reading them had one source lint differently on
+  another machine (#447)
+- **Breaking:** `config::lint::Lint::respect_gitignore` is a
+  `config::lint::GitignorePolicy` rather than a `bool`, and
+  `service::walker::WalkParallelBuilder::build` takes one (#447)
+- **Breaking:** MD034 no longer reports a URL whose scheme GFM does not
+  autolink. `http://`, `https://` and `ftp://` are the ones it does, so
+  `ftps://`, `file://`, `ssh://` and the rest are left alone, none of them being
+  a link a reader is handed. An email address is matched apart from those and
+  carries its own two: a `mailto:foo@example.com` or `xmpp:foo@example.com` is
+  still reported, and from the scheme rather than from the address, that being
+  where GFM starts the link (#418)
+- **Breaking:** MD034 no longer reports a URL inside square brackets — a
+  shortcut link, or an image's alt text — GFM autolinking nothing inside of
+  them. This is the report a reversed link `(text)[http://www.example.com/]`
+  used to raise, and mado has no rule of its own for that typo, so it now goes
+  unreported (#418)
+- **Breaking:** MD007 no longer compares a bullet with the item above it: a
+  bullet whose list is directly in another item is compared with that item,
+  and any other bullet is checked on its own. When measuring indentation, a
+  tab counts to the next tab stop rather than as one column. Results change in
+  both directions. With the default `indent`, for example, `* a` followed by
+  `\t* b` is no longer reported, while `>\t* a` now is (#479)
+- **Breaking:** MD005 measures indentation as CommonMark does, in columns
+  after any block quote marker, instead of in bytes from the start of the
+  line. Results change, in both directions, for some lists indented with tabs,
+  after a byte order mark, or inside blockquotes (#483)
+- Update the Markdown parser (`comrak`) from 0.54.0 to 0.57.0 (#463, #502)
+- **Breaking:** the Linux arm64 binary needs glibc 2.34 or later, as the x86_64
+  one already does. It no longer starts on systems with an older glibc, such as
+  Amazon Linux 2, Ubuntu 20.04 and Debian 11 (#509)
+
+### Fixed
+
+- MD012: report consecutive blank lines after an indented code block. They
+  were skipped as part of the block, which they are not (#502)
+- MD013: with `code-blocks = false`, stop skipping the blank lines after an
+  indented code block as part of the block. A line there holding only
+  whitespace, and longer than the limit, is now reported (#502)
+- MD014 and MD046: end an indented code block's position at its last line of
+  code rather than at the blank line after it. No output format prints the end;
+  it is for a library caller reading `Violation::position()` (#502)
+- MD027: measure a quoted paragraph's line from the line itself rather than from
+  the first inline reported on it, which an inline spanning two lines leaves
+  beginning where it closed rather than where the line's content does. Reports
+  move in both directions: `> **bold` followed by `> span.** tail here` was
+  reported at the text after the strong and is not any more, one space following
+  both markers, while `> **bold` followed by `>  span**` went unreported and now
+  is, the two spaces after its marker having gone unread. A line below the one a
+  nested quote starts at is measured at each of that quote's own markers rather
+  than at the innermost alone, so `>  >  >  text` written there is reported once
+  per marker, and a line carrying no marker at all is left alone rather than
+  measured at the first inline on it. Two shapes change answer the other way: a
+  line reaching its quote through a list item's indentation goes unreported
+  (#456), and one whose `>` is indented far enough for CommonMark to read it as
+  text is reported for the spaces after it (#455). The position a violation
+  carries runs from the content after the marker to the end of the line, where it
+  ran to the end of the first inline on it; no output format prints that, so it is
+  for a library caller reading `Violation::position()` (#452)
+- MD027: measure every block a quote holds rather than its first alone, so what
+  follows a blank quoted line is measured too. `> Quoted text` above a `>` and a
+  `>  More quoted text` reports the third line, as it already did when that line
+  was the quote's first block, and a nested quote written there is reported for
+  the outer marker as well as the inner one. Each block is read on the line it
+  starts at rather than against the column the quote's first line put its marker
+  at, so a block whose marker is indented within what CommonMark allows is not
+  reported for that indentation, one whose marker sits further left than the
+  quote's first is reported for the spaces after it, and the position a reported
+  block carries names the line it starts at rather than every line it spans. An
+  indented code block written anywhere but first is reported with the rest, the
+  four spaces it needs on top of the marker's own being more than one, which is
+  #459 rather than anything this release settles. Such a block is reported at the
+  first character after its spaces rather than at the column the block's content
+  begins, which moves the column right when it is written with more spaces than
+  the four it needs. A lazily continued line of a block after the first is
+  measured as well, which is how the misread #455 describes reaches documents it
+  did not before (#460)
+- MD034: report the URLs GFM autolinks, rather than every string a URL scanner
+  accepts. `http\://www.example.com/`, which is how a URL is written so that it
+  is *not* autolinked, was reported as one. A `www.` host written without a
+  scheme is autolinked by GFM and is now reported, and a URL is reported to
+  where GFM stops linking it rather than to where a scanner stops reading it
+  (#418)
+
+## [0.3.2] - 2026-09-07
+
+### Added
+
+- The GitHub Action takes a `version` input, so a workflow can run a mado
+  release other than the one the action was published with (#390)
+
+### Fixed
+
+- MD030: derive the marker width from the item's own ordinal, so ordered items
+  numbered 10 or higher are no longer reported when a single space already
+  follows the marker (#363)
+- MD004, MD005, MD029 and MD030: descend into containers other than lists, so
+  lists nested inside a blockquote are checked (#368)
+- MD007: measure indentation from the end of the blockquote prefix instead of
+  the start of the line (#369)
+- The GitHub Action downloads the `arm64` release asset on arm64 Linux runners,
+  where it previously asked for an `aarch64` one that no release publishes and
+  failed (#395)
+- MD038: measure a code span against its own delimiter rather than a
+  one-backtick one, so spans delimited by two or more backticks — the only way
+  to write a span containing a backtick — are no longer reported when they hold
+  no padding. A span whose delimiters sit on different lines is left unjudged
+  rather than reported, since nothing recorded about it describes what was
+  written against those delimiters (#391)
+- MD033, MD034, MD037, MD038 and MD039: put back the columns an escaped pipe
+  cost the report. A `\|` written earlier in the same table cell, or earlier on
+  the same line above a table's header row, moved an inline's reported column
+  one to the left of the character it named, and one more for each further
+  escape (#405)
+- MD034 and MD037: report the column an inline was written at, rather than one
+  counted off a string CommonMark had already resolved the escapes out of. A
+  `\.` written earlier in the same text node moved the reported column one to
+  the left of the character it named, and one more for each further escape
+  (#407)
+- MD037: an escaped `*` or `_` is no longer read as an emphasis marker, so a
+  line whose only emphasis is the one its author escaped to keep is left alone,
+  and a line that has emphasis besides is reported at it (#407)
+- MD037: report the marker after a tab, or after any other whitespace, rather
+  than the whitespace itself (#407)
+
+## [0.3.1] - 2026-07-22
+
+### Added
+
+- Support for use as a [pre-commit](https://pre-commit.com/) hook (#162)
+
+### Changed
+
+- Print errors to stderr instead of stdout (#247)
+- Update the Markdown parser (`comrak`) from 0.38.0 to 0.54.0 (#161, #184,
+  #192, #244, #337)
+
+### Fixed
+
+- Normalize a leading `./` before matching `--exclude` patterns (#344)
+
+## [0.3.0] - 2025-04-12
+
+### Added
+
+- Rule tags, so groups of rules can be selected at once (#92)
+- Shell completion generation (#125)
+
+### Changed
+
+- **Breaking:** update the Markdown parser (`comrak`) from 0.35.0 to 0.38.0,
+  which changes how some documents are parsed (#139, #148)
+- Require a subcommand, so running `mado` without one prints a usage error
+  instead of exiting silently (#149)
+
+## [0.2.2] - 2025-02-16
+
+### Added
+
+- `sublist` style for `[lint.md004]` (#107)
+- `respect-gitignore` option for `[lint]` (#109)
+- `exclude` option for `[lint]` (#115)
+
+### Changed
+
+- Speed up file discovery by filtering on file type while walking (#113)
+
+## [0.2.1] - 2025-02-04
+
+### Added
+
+- `allow-different-nesting` option for `[lint.md024]` (#104)
+
+## [0.2.0] - 2025-01-30
+
+### Added
+
+- Read from stdin in `check` (#89)
+- JSON schema for the configuration file (#88)
+
+### Changed
+
+- **Breaking:** rename the config keys in `[lint.md030]` (#86)
+- **Breaking:** change the style format for `[lint.md035]` (#91)
+- Update the Markdown parser (`comrak`) from 0.33.0 to 0.35.0 (#95)
+
+### Fixed
+
+- `check` no longer fails on empty stdin (#96)
+
+## [0.1.5] - 2025-01-22
+
+### Added
+
+- winget package (#74)
+- `--quiet` flag (#78)
+
+### Fixed
+
+- Respect the configuration file when `--quiet` is given (#80)
+
+## [0.1.4] - 2025-01-17
+
+### Added
+
+- Homebrew formula (#51, #52, #54, #55, #56, #57, #62)
+- Scoop manifest (#53, #58)
+- Nix flake (#60, #61)
+
+## [0.1.3] - 2025-01-13
+
+### Changed
+
+- Update the Markdown parser (`comrak`) from 0.32.0 to 0.33.0 (#24)
+
+## [0.1.2] - 2025-01-05
+
+### Fixed
+
+- MD013 now honours `code-blocks = false` and `tables = false`, and skips a
+  whole table rather than only its rows (#14)
+
+## [0.1.1] - 2025-01-05
+
+### Added
+
+- GitHub Action (#7, #8)
+- `code-blocks` and `tables` options for MD013 (#9)
+
+### Fixed
+
+- Loading of the global configuration file (#10)
+
+## [0.1.0] - 2024-12-31
+
+### Added
+
+- Initial release
+
+[Keep a Changelog]: https://keepachangelog.com/en/1.1.0/
+[Semantic Versioning]: https://semver.org/spec/v2.0.0.html
+[Unreleased]: https://github.com/akiomik/mado/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/akiomik/mado/compare/v0.3.2...v0.4.0
+[0.3.2]: https://github.com/akiomik/mado/compare/v0.3.1...v0.3.2
+[0.3.1]: https://github.com/akiomik/mado/compare/v0.3.0...v0.3.1
+[0.3.0]: https://github.com/akiomik/mado/compare/v0.2.2...v0.3.0
+[0.2.2]: https://github.com/akiomik/mado/compare/v0.2.1...v0.2.2
+[0.2.1]: https://github.com/akiomik/mado/compare/v0.2.0...v0.2.1
+[0.2.0]: https://github.com/akiomik/mado/compare/v0.1.5...v0.2.0
+[0.1.5]: https://github.com/akiomik/mado/compare/v0.1.4...v0.1.5
+[0.1.4]: https://github.com/akiomik/mado/compare/v0.1.3...v0.1.4
+[0.1.3]: https://github.com/akiomik/mado/compare/v0.1.2...v0.1.3
+[0.1.2]: https://github.com/akiomik/mado/compare/v0.1.1...v0.1.2
+[0.1.1]: https://github.com/akiomik/mado/compare/v0.1.0...v0.1.1
+[0.1.0]: https://github.com/akiomik/mado/releases/tag/v0.1.0

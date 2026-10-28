@@ -1,0 +1,30 @@
+name: Test explicit version
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          version: v0.4.0
+          args: check tests/fixtures/good/good.md
+      - name: Assert installed version
+        run: |
+          if [ ! -x "$HOME/bin/mado" ]; then
+            echo "FAIL: mado not installed"
+            exit 1
+          fi
+          OUT="$("$HOME/bin/mado" --version)"
+          echo "version: $OUT"
+          if ! echo "$OUT" | grep -q "0.4.0"; then
+            echo "FAIL: expected version 0.4.0"
+            exit 1
+          fi
+          if ls mado-*.tar.gz >/dev/null 2>&1; then
+            echo "FAIL: archive not cleaned up"
+            exit 1
+          fi
+          echo "PASS"

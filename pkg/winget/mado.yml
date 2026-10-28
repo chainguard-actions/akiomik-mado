@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.singleton.1.9.0.schema.json
+
+PackageIdentifier: AkiomiKamakura.Mado
+PackageVersion: 0.3.2
+PackageLocale: en-US
+PackageName: Mado
+ShortDescription: A fast Markdown linter written in Rust.
+License: Apache-2.0
+Publisher: Akiomi Kamakura
+ReleaseNotesUrl: https://github.com/akiomik/mado/blob/main/CHANGELOG.md
+InstallerType: zip
+NestedInstallerType: portable
+NestedInstallerFiles:
+  - RelativeFilePath: mado.exe
+InstallModes:
+  - silent
+  - silentWithProgress
+UpgradeBehavior: install
+ReleaseDate: 2026-09-07
+Installers:
+  - Architecture: x64
+    InstallerUrl: https://github.com/akiomik/mado/releases/download/v0.3.2/mado-Windows-msvc-x86_64.zip
+    InstallerSha256: 4d04095cccaad58319ad1094575797dc92d7488413f18099768865e4c47fb8e7
+ManifestType: singleton
+ManifestVersion: 1.9.0

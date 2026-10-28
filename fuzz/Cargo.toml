@@ -1,0 +1,31 @@
+[package]
+name = "mado-fuzz"
+version = "0.0.0"
+publish = false
+edition.workspace = true
+
+[package.metadata]
+cargo-fuzz = true
+
+[lints]
+workspace = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+comrak.workspace = true
+
+[dependencies.mado]
+path = ".."
+
+# `cargo test`, `cargo doc`, `cargo bench` and the coverage run skip this
+# package for the `false`s below. Everything else that builds default targets
+# reaches it, `cargo clippy --workspace` included, and compiles a vendored
+# libFuzzer with a C++ toolchain on the way. A lib target here would put
+# `libfuzzer-sys` back in all of them; a `tests/` file, in `cargo test` and the
+# coverage run.
+[[bin]]
+name = "linter"
+path = "fuzz_targets/linter.rs"
+test = false
+doc = false
+bench = false

@@ -4,147 +4,126 @@
 
 > This file was generated automatically by the hardening agent.
 
-**Policy SHA:** `d636be7e43ef829af6e853da6b3c7566db9f72fe`
+**Policy SHA:** `374911c4be584df24e6da57af2d990570ef0f859`
 
 **Test Policy SHA:** `843adf9e4b8f85d0c08b27b9d0b09dd094b54702`
 
 **Harden Agent Version:** `2`
 
-Action **akiomik--mado/v0.3.1** was hardened automatically. 12 finding(s) were identified and resolved across 1 iteration(s).
+Action **akiomik--mado/v0.3.1** was hardened automatically. 4 finding(s) were identified and resolved across 2 iteration(s).
 
 ## Findings Fixed
 
 ### script-injection (severity: high)
 
-Rule (b) violation: In action/entrypoint.sh (called from action.yml), the env var $INPUT_ARGS holds the value of inputs.args (user-controlled, set via `INPUT_ARGS: ${{ inputs.args }}` in action.yml) and is expanded unquoted in the shell command `$COMMAND_PATH $INPUT_ARGS` on line 32. An attacker can supply shell metacharacters (`;`, `|`, `&`, `$(...)`, etc.) via the `args` input to inject arbitrary commands.
+Carried forward from this version's previous harden, which fixed it; fix it again unless the code no longer has the problem. Rule (b) violation: In action/entrypoint.sh (called from action.yml), the env var $INPUT_ARGS holds the value of inputs.args (user-controlled, set via `INPUT_ARGS: ${{ inputs.args }}` in action.yml) and is expanded unquoted in the shell command `$COMMAND_PATH $INPUT_ARGS` on line 32. An attacker can supply shell metacharacters (`;`, `|`, `&`, `$(...)`, etc.) via the `args` input to inject arbitrary commands.
 
 Locations:
 
 - `action/entrypoint.sh:32`
 - `action.yml:18`
 
-### unpinned-uses (severity: high)
+### prior-fix (severity: high)
 
-All uses: references in cd.yml use mutable tags instead of pinned SHA hashes: `actions/checkout@v7` (line 30), `houseabsolute/actions-rust-cross@v1` (line 32), `houseabsolute/actions-rust-release@v0.0.8` (line 40). These can be silently updated to malicious versions.
+Carried forward from this version's previous harden, which fixed it; fix it again unless the code no longer has the problem. The previous harden changed action/entrypoint.sh without recording a finding for it, and this analysis reported nothing there. Re-apply its security changes unless the code no longer needs them. The previous patch:
+```diff
+diff --git a/action/entrypoint.sh b/action/entrypoint.sh
+index a36e1d3..bf6127f 100755
+--- a/action/entrypoint.sh
++++ b/action/entrypoint.sh
+@@ -30,4 +30,5 @@ if [[ ! -x "$COMMAND" ]]; then
+ fi
+ 
+ echo "Run '$COMMAND_PATH $INPUT_ARGS'"
+-$COMMAND_PATH $INPUT_ARGS
++read -ra args <<< "$INPUT_ARGS"
++"$COMMAND_PATH" "${args[@]}"
 
-Locations:
-
-- `.github/workflows/cd.yml:30`
-- `.github/workflows/cd.yml:32`
-- `.github/workflows/cd.yml:40`
-
-### unpinned-uses (severity: high)
-
-All uses: references in ci-action.yml use mutable tags instead of pinned SHA hashes: `actions/checkout@v7` (line 13).
-
-Locations:
-
-- `.github/workflows/ci-action.yml:13`
-
-### unpinned-uses (severity: high)
-
-All uses: references in ci-pkg.yml use mutable tags or branch names instead of pinned SHA hashes: `Homebrew/actions/setup-homebrew@master` (line 15), `actions/checkout@v7` (lines 24, 36, 52), `MinoruSekine/setup-scoop@v5.0.0` (lines 38, 55), `cachix/install-nix-action@v31` (line 66).
+```
 
 Locations:
 
-- `.github/workflows/ci-pkg.yml:15`
-- `.github/workflows/ci-pkg.yml:24`
-- `.github/workflows/ci-pkg.yml:36`
-- `.github/workflows/ci-pkg.yml:38`
-- `.github/workflows/ci-pkg.yml:52`
-- `.github/workflows/ci-pkg.yml:55`
-- `.github/workflows/ci-pkg.yml:64`
-- `.github/workflows/ci-pkg.yml:65`
+- `action/entrypoint.sh`
 
-### unpinned-uses (severity: high)
+### prior-fix (severity: high)
 
-All uses: references in ci.yml use mutable tags or version strings instead of pinned SHA hashes: `actions/checkout@v7` (×5), `dtolnay/rust-toolchain@1.91.1` (×5), `Swatinem/rust-cache@v2` (×5), `taiki-e/install-action@cargo-llvm-cov`, `codecov/codecov-action@v7`.
+Carried forward from this version's previous harden, which fixed it; fix it again unless the code no longer has the problem. The previous harden changed action.yml without recording a finding for it, and this analysis reported nothing there. Re-apply its security changes unless the code no longer needs them. The previous patch:
+```diff
+diff --git a/action.yml b/action.yml
+index 70f1e61..5b5d185 100644
+--- a/action.yml
++++ b/action.yml
+@@ -4,16 +4,31 @@ author: "Akiomi Kamakura"
+ branding:
+   icon: check
+   color: white
+-
+ inputs:
+   args:
+     description: "Arguments passed to Mado. Defaults to `check .`."
+     required: false
+     default: "check ."
+-
+ runs:
+   using: 'composite'
+   steps:
+     - id: mado
+       shell: bash
+       run: $GITHUB_ACTION_PATH/action/entrypoint.sh
 
-Locations:
-
-- `.github/workflows/ci.yml:14`
-- `.github/workflows/ci.yml:15`
-- `.github/workflows/ci.yml:16`
-- `.github/workflows/ci.yml:28`
-- `.github/workflows/ci.yml:29`
-- `.github/workflows/ci.yml:30`
-- `.github/workflows/ci.yml:42`
-- `.github/workflows/ci.yml:43`
-- `.github/workflows/ci.yml:44`
-- `.github/workflows/ci.yml:56`
-- `.github/workflows/ci.yml:57`
-- `.github/workflows/ci.yml:58`
-- `.github/workflows/ci.yml:70`
-- `.github/workflows/ci.yml:71`
-- `.github/workflows/ci.yml:72`
-- `.github/workflows/ci.yml:73`
-- `.github/workflows/ci.yml:77`
-
-### unpinned-uses (severity: high)
-
-All uses: references in taplo.yml use mutable tags instead of pinned SHA hashes: `actions/checkout@v7` (line 11), `uncenter/setup-taplo@v2` (line 12).
+```
 
 Locations:
 
-- `.github/workflows/taplo.yml:11`
-- `.github/workflows/taplo.yml:12`
+- `action.yml`
 
-### unpinned-uses (severity: high)
+### prior-fix (severity: high)
 
-All uses: references in typos.yml use mutable tags instead of pinned SHA hashes: `actions/checkout@v7` (line 11), `crate-ci/typos@v1.48.0` (line 12).
+Carried forward from this version's previous harden, which fixed it; fix it again unless the code no longer has the problem. The previous harden changed scripts/acceptance/.mdlrc without recording a finding for it, and this analysis reported nothing there. Re-apply its security changes unless the code no longer needs them. The previous patch:
+```diff
+diff --git a/scripts/acceptance/.mdlrc b/scripts/acceptance/.mdlrc
+deleted file mode 120000
+index c0b19a6..0000000
+--- a/scripts/acceptance/.mdlrc
++++ /dev/null
+@@ -1 +0,0 @@
+-../benchmarks/.mdlrc
+\ No newline at end of file
+diff --git a/scripts/acceptance/.mdlrc b/scripts/acceptance/.mdlrc
+new file mode 100644
+index 0000000..a296d3c
+--- /dev/null
++++ b/scripts/acceptance/.mdlrc
+@@ -0,0 +1 @@
++rules "MD001", "MD002", "MD003", "MD004", "MD005", "MD006", "MD007", "MD009", "MD010", "MD012", "MD013", "MD014", "MD018", "MD019", "MD020", "MD021", "MD022", "MD023", "MD024", "MD025", "MD026", "MD027", "MD028", "MD029", "MD030", "MD031", "MD032", "MD033", "MD034", "MD035", "MD036", "MD037", "MD038", "MD039", "MD040", "MD041", "MD046", "MD047"
 
-Locations:
-
-- `.github/workflows/typos.yml:11`
-- `.github/workflows/typos.yml:12`
-
-### missing-permissions (severity: medium)
-
-Workflow file ci-action.yml has no top-level `permissions:` key and no job-level `permissions:` key on any job. Without explicit permissions, the GITHUB_TOKEN inherits the repository's default permissions, which may be overly broad.
-
-Locations:
-
-- `.github/workflows/ci-action.yml:1`
-
-### missing-permissions (severity: medium)
-
-Workflow file ci-pkg.yml has no top-level `permissions:` key and no job-level `permissions:` key on any job. Without explicit permissions, the GITHUB_TOKEN inherits the repository's default permissions, which may be overly broad.
-
-Locations:
-
-- `.github/workflows/ci-pkg.yml:1`
-
-### missing-permissions (severity: medium)
-
-Workflow file ci.yml has no top-level `permissions:` key and no job-level `permissions:` key on any job. Without explicit permissions, the GITHUB_TOKEN inherits the repository's default permissions, which may be overly broad.
+```
 
 Locations:
 
-- `.github/workflows/ci.yml:1`
-
-### missing-permissions (severity: medium)
-
-Workflow file taplo.yml has no top-level `permissions:` key and no job-level `permissions:` key on any job. Without explicit permissions, the GITHUB_TOKEN inherits the repository's default permissions, which may be overly broad.
-
-Locations:
-
-- `.github/workflows/taplo.yml:1`
-
-### missing-permissions (severity: medium)
-
-Workflow file typos.yml has no top-level `permissions:` key and no job-level `permissions:` key on any job. Without explicit permissions, the GITHUB_TOKEN inherits the repository's default permissions, which may be overly broad.
-
-Locations:
-
-- `.github/workflows/typos.yml:1`
+- `scripts/acceptance/.mdlrc`
 
 ## Iteration Notes
 
 ### Iteration 1
 
-**Fixes applied:** script-injection, unpinned-uses, missing-permissions
+**Fixes applied:** script-injection, prior-fix
 
 **Notes:**
 
-Fixed all findings: (1) Script injection in action/entrypoint.sh: replaced unquoted `$COMMAND_PATH $INPUT_ARGS` with `read -ra args <<< "$INPUT_ARGS"` + `"$COMMAND_PATH" "${args[@]}"` to safely handle user-controlled args without shell metacharacter injection. (2) Pinned all unpinned `uses:` references across cd.yml, ci-action.yml, ci-pkg.yml, ci.yml, taplo.yml, and typos.yml to full commit SHAs with original tags as comments. (3) Added `permissions: contents: read` top-level blocks to ci-action.yml, ci-pkg.yml, ci.yml, taplo.yml, and typos.yml (cd.yml already had appropriate permissions).
+I fixed the three files below by reading the code. Nothing was run or tested.
+
+1. **`action/entrypoint.sh`** (script-injection): `$INPUT_ARGS` was expanded unquoted when the script ran mado. It's now split into a bash array and passed as "$COMMAND_PATH" "${args[@]}". The split uses `read -r -d '' -a args <<< "$INPUT_ARGS" || true`, behind an `if [[ -n "$INPUT_ARGS" ]]` check. This splits on spaces and newlines like upstream's unquoted variable did, and keeps quote characters as plain text. The one change in behaviour: `*` or `?` in `args` reaches mado as a literal word instead of being expanded by the shell. I didn't use the previous harden's `read -ra`, because it only reads the first line of the input.
+
+2. **`action.yml`**: the script path is now quoted (`run: '"$GITHUB_ACTION_PATH/action/entrypoint.sh"'`). Mapping `inputs.args` through `env:` was already in place. The previous patch only removed blank lines, so I didn't repeat that.
+
+3. **`scripts/acceptance/.mdlrc`**: replaced the symlink to `../benchmarks/.mdlrc` with a regular file holding the same content, as the previous harden did.
+
+### Iteration 1
+
+**Fixes applied:** publish-gate
+
+**Notes:**
+
+Replaced bash array-style assignments PROJECT_ROOT=(...) with plain scalar assignments in scripts/acceptance/test.sh and scripts/benchmarks/comparison.sh (#!/bin/sh scripts). Value is unchanged (a one-element array's $PROJECT_ROOT is the same string).
 

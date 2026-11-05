@@ -30,5 +30,8 @@ if [[ ! -x "$COMMAND" ]]; then
 fi
 
 echo "Run '$COMMAND_PATH $INPUT_ARGS'"
-read -ra args <<< "$INPUT_ARGS"
+args=()
+if [[ -n "$INPUT_ARGS" ]]; then
+  read -r -d '' -a args <<< "$INPUT_ARGS" || true
+fi
 "$COMMAND_PATH" "${args[@]}"

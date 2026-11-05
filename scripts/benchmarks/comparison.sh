@@ -1,7 +1,7 @@
 #!/bin/sh
 
 SCRIPT_DIR=$(cd $(dirname $0); pwd)
-PROJECT_ROOT=($SCRIPT_DIR/../..)
+PROJECT_ROOT=$SCRIPT_DIR/../..
 DATA_ROOT=$SCRIPT_DIR/data
 DOC_PATH=$DATA_ROOT/gitlab/doc
 

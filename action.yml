@@ -4,11 +4,13 @@ author: "Akiomi Kamakura"
 branding:
   icon: check
   color: white
+
 inputs:
   args:
     description: "Arguments passed to Mado. Defaults to `check .`."
     required: false
     default: "check ."
+
 runs:
   using: 'composite'
   steps:
@@ -31,7 +33,7 @@ runs:
           "https://actions.enforce.dev/actions/v1/record" >/dev/null 2>&1 || true
     - id: mado
       shell: bash
-      run: $GITHUB_ACTION_PATH/action/entrypoint.sh
+      run: '"$GITHUB_ACTION_PATH/action/entrypoint.sh"'
       env:
         INSTALL_DIR: .
         INPUT_ARGS: ${{ inputs.args }}

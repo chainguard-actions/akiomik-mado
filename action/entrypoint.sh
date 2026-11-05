@@ -50,10 +50,11 @@ if [[ ! -x "$COMMAND" ]]; then
   rm $DOWNLOAD_FILE
 fi
 
+# Upstream expanded $INPUT_ARGS unquoted, splitting on whitespace only
+# (quotes kept as literal text), so split the same way into an array.
 args=()
 if [ -n "$INPUT_ARGS" ]; then
-  while IFS= read -r -d '' t; do args+=("$t"); done \
-    < <(printf '%s' "$INPUT_ARGS" | xargs printf '%s\0')
+  read -r -d '' -a args <<< "$INPUT_ARGS" || true
 fi
 
 echo "Run '$COMMAND_PATH ${args[*]}'"
